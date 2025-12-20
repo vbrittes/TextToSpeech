@@ -10,7 +10,7 @@ import Foundation
 class LLMCompletionMockService: LLMCompletionService {
     
     func submit(completion: LLMTextInput) async throws -> LLMTextOutput {
-        try await Task.sleep(nanoseconds: 100_000_000)
+        try await Task.sleep(nanoseconds: 5_000_000_000)
         
         let response = """
         {

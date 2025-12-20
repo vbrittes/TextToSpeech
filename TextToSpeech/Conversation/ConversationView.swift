@@ -37,7 +37,15 @@ struct ConversationView: View {
                     .scaleEffect(viewModel.noiseLevel)
                     .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
                     .padding(30)
-                SpeakLongPressButton(size: 150, title: "Speak") { value in
+                Image(systemName: "circle.dotted")
+                    .font(.system(size: 150, weight: .bold))
+                    .frame(width: 180, height: 180)
+                    .foregroundStyle(Color.blue)
+                    .symbolEffect(.rotate, options: .repeat(.continuous), isActive: viewModel.loading)
+                    .symbolEffect(.breathe, options: .repeat(.continuous), isActive: viewModel.loading)
+                    .scaleEffect(viewModel.loading ? 1.1 : 0.1)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
+                SpeakLongPressButton(size: 150, title: "Hold & Speak") { value in
                     Task { @MainActor in
                         await (value ? viewModel.pressedSpeak() : viewModel.releaseSpeak())
                     }
@@ -63,8 +71,8 @@ struct ConversationView: View {
                                 .containerRelativeFrame(.vertical)
                                 .transition(.slideDownFadeOnRemove(outYOffset: 10))
                         }
-                        
                         ForEach(viewModel.messages) { m in
+
                             HStack(spacing: 8) {
                                 if m.role == .user {
                                     Spacer()
@@ -92,16 +100,19 @@ struct ConversationView: View {
                                             .background(Circle().fill(Color.gray.opacity(0.5)))
                                             .padding(10)
                                     }.disabled(!canPlay)
-                                    .opacity(canPlay ? 1 : 0.4)
+                                        .opacity(canPlay ? 1 : 0.4)
                                     Spacer()
+                                } else if viewModel.retryList.contains(m) {
+                                    Button {
+                                        Task { @MainActor in
+                                            await viewModel.retry(message: m)
+                                        }
+                                    } label: {
+                                        Text("Retry")
+                                            .foregroundStyle(.red)
+                                            .font(.system(size: 12, weight: .semibold))
+                                    }
                                 }
-                            }
-                            
-                            if m == viewModel.messages.last {
-                                Rectangle()
-                                    .foregroundStyle(.clear)
-                                    .frame(height: 1)
-                                    .id(bottomAnchorID)
                             }
                         }
                         
@@ -110,6 +121,11 @@ struct ConversationView: View {
                                 .multilineTextAlignment(.center)
                                 .font(.body)
                         }
+                        
+                        Rectangle()
+                            .foregroundStyle(.clear)
+                            .frame(height: 1)
+                            .id(bottomAnchorID)
                         
                     }
                     .standardAnimation(value: viewModel.messages)

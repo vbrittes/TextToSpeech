@@ -15,39 +15,39 @@ struct SpeakLongPressButton: View {
     @State private var isDown = false
     
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(isDown ? Color.blue : .cyan)
-                .frame(width: size, height: size)
-                .scaleEffect(isDown ? 1.05 : 1.0)
-                .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
+        Button {
+            // no action for tap
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(isDown ? .cyan : .blue)
+                    .frame(width: size, height: size)
+                    .scaleEffect(isDown ? 1.05 : 1.0)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
 
-            Text(title)
-                .foregroundStyle(.white)
-                .font(.headline.bold())
-        }
-        .padding(6)
-        .contentShape(Circle())
-        .accessibilityAddTraits(.isButton)
-        .highPriorityGesture(
-            DragGesture()
-                .onChanged { _ in
-                    withAnimation {
-                        isDown = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation {
-                        isDown = false
-                    }
-                }
-        )
-        .accessibilityAddTraits(.isButton)
-        .onChange(of: isDown) { _, newValue in
-            Task { @MainActor in
-                onHoldChange(newValue)
+                Text(title)
+                    .foregroundStyle(.white)
+                    .font(.headline.bold())
             }
+            .padding(6)
+            .contentShape(Circle())
+            .accessibilityAddTraits(.isButton)
         }
+        .buttonStyle(PressableButtonStyle { isDown in
+            self.isDown = isDown
+            onHoldChange(isDown)
+        })
+        
     }
 }
 
+struct PressableButtonStyle: ButtonStyle {
+    var onPressChanged: (Bool) -> Void = { _ in }
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, pressed in
+                onPressChanged(pressed)
+            }
+    }
+}

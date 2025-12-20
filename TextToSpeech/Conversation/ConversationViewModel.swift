@@ -14,7 +14,7 @@ final class ConversationViewModel: ObservableObject {
     private var synthesizer = SpeechSynthesizer()
     private let recognizer = SpeechRecognizer()
     
-    @Injection(mocking: true) private var service: LLMCompletionService
+    @Injection(mocking: false) private var service: LLMCompletionService
     
     private var cancellables: Set<AnyCancellable> = []
     
@@ -23,7 +23,9 @@ final class ConversationViewModel: ObservableObject {
     @Published private(set) var greeting: String? = "How can I help you today?"
     @Published private(set) var noiseLevel: CGFloat = 0.0
     @Published private(set) var playbackID: UUID?
-    
+    @Published private(set) var loading = false
+    @Published private(set) var retryList: [LLMMMessage] = []
+        
     init(service: LLMCompletionService? = nil) {
         self.service = service ?? self.service
         
@@ -69,11 +71,6 @@ final class ConversationViewModel: ObservableObject {
         _ = await recognizer.requestMicrophonePermission()
     }
     
-    func readAloud(message: LLMMMessage) {
-        synthesizer.speak(text: message.content, id: message.id)
-        playbackID = message.id
-    }
-    
     @MainActor
     func pressedSpeak() async {
         print("Listening...")
@@ -89,6 +86,8 @@ final class ConversationViewModel: ObservableObject {
 
     @MainActor
     func releaseSpeak() async {
+        transcript = "a"
+        
         recognizer.stop()
         noiseLevel = 0
         print("Final transcript: \(transcript)")
@@ -100,28 +99,58 @@ final class ConversationViewModel: ObservableObject {
         let message = LLMMMessage(role: .user, content: transcript)
         let input = LLMTextInput(model: .grok4, messages: [message])
         
-        greeting = nil
-        messages.append(message)
-        
-        transcript = ""
+        withAnimation {
+            greeting = nil
+            messages.append(message)
+            
+            transcript = ""
+            
+            errorMessage = nil
+            loading = true
+        }
         
         do {
-            errorMessage = nil
-            
             let result = try await service.submit(completion: input)
-            result.choices.forEach { messages.append($0.message) }
             
             recognizer.reset()
+            
+            withAnimation {
+                result.choices.forEach { messages.append($0.message) }
+                loading = false
+            }
             
             if let message = result.choices.first?.message {
                 readAloud(message: message)
             }
             
+            @Injection(mocking: false) var service: LLMCompletionService
+            self.service = service
+            
         } catch {
-            errorMessage = error.localizedDescription
+            withAnimation {
+                errorMessage = error.localizedDescription
+                retryList.append(message)
+                loading = false
+            }
+            
             synthesizer.speak(text: error.localizedDescription, id: UUID())
+            
+            @Injection(mocking: true) var service: LLMCompletionService
+            self.service = service
         }
     }
         
 }
 
+extension ConversationViewModel {
+    func readAloud(message: LLMMMessage) {
+        synthesizer.speak(text: message.content, id: message.id)
+        playbackID = message.id
+    }
+    
+    func retry(message: LLMMMessage) async {
+        messages.removeAll { $0 == message }
+        transcript = message.content
+        await releaseSpeak()
+    }
+}
