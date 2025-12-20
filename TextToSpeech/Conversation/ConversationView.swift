@@ -81,6 +81,18 @@ struct ConversationView: View {
                                     .font(.body)
                                 
                                 if m.role != .user {
+                                    let canPlay = viewModel.playbackID != m.id
+                                    Button {
+                                        viewModel.readAloud(message: m)
+                                    } label: {
+                                        Image(systemName: "play.fill")
+                                            .foregroundStyle(.white)
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .padding(10)
+                                            .background(Circle().fill(Color.gray.opacity(0.5)))
+                                            .padding(10)
+                                    }.disabled(!canPlay)
+                                    .opacity(canPlay ? 1 : 0.4)
                                     Spacer()
                                 }
                             }

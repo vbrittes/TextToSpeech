@@ -30,9 +30,17 @@ struct SpeakLongPressButton: View {
         .contentShape(Circle())
         .accessibilityAddTraits(.isButton)
         .highPriorityGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in isDown = true }
-                .onEnded { _ in isDown = false }
+            DragGesture()
+                .onChanged { _ in
+                    withAnimation {
+                        isDown = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation {
+                        isDown = false
+                    }
+                }
         )
         .accessibilityAddTraits(.isButton)
         .onChange(of: isDown) { _, newValue in

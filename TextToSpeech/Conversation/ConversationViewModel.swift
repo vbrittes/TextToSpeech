@@ -10,22 +10,31 @@ import Combine
 
 final class ConversationViewModel: ObservableObject {
     
-    @Published var messages: [LLMMMessage] = []
-    @Published var noiseMeter = RecorderNoiseMeter()
+    @Published private(set) var messages: [LLMMMessage] = []
     private var synthesizer = SpeechSynthesizer()
     private let recognizer = SpeechRecognizer()
     
-    @Injection private var service: LLMCompletionService
+    @Injection(mocking: true) private var service: LLMCompletionService
     
     private var cancellables: Set<AnyCancellable> = []
     
-    @Published var transcript = ""
-    @Published var errorMessage: String?
-    @Published var greeting: String? = "How can I help you today?"
-    @Published var noiseLevel: CGFloat = 0.0
+    @Published private(set) var transcript = ""
+    @Published private(set) var errorMessage: String?
+    @Published private(set) var greeting: String? = "How can I help you today?"
+    @Published private(set) var noiseLevel: CGFloat = 0.0
+    @Published private(set) var playbackID: UUID?
     
     init(service: LLMCompletionService? = nil) {
         self.service = service ?? self.service
+        
+        synthesizer.$isSpeaking
+            .receive(on: RunLoop.main)
+            .sink { [weak self] speaking in
+                if !speaking {
+                    self?.playbackID = nil
+                }
+            }
+            .store(in: &cancellables)
         
         recognizer.$transcript
             .receive(on: RunLoop.main)
@@ -38,7 +47,9 @@ final class ConversationViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] noise in
                 guard self?.recognizer.state == .listening else {
-                    self?.noiseLevel = 1
+                    withAnimation {
+                        self?.noiseLevel = 1
+                    }
                     return
                 }
                 
@@ -56,6 +67,11 @@ final class ConversationViewModel: ObservableObject {
     
     func requestMicPermissionAccess() async {
         _ = await recognizer.requestMicrophonePermission()
+    }
+    
+    func readAloud(message: LLMMMessage) {
+        synthesizer.speak(text: message.content, id: message.id)
+        playbackID = message.id
     }
     
     @MainActor
@@ -98,7 +114,7 @@ final class ConversationViewModel: ObservableObject {
             recognizer.reset()
             
             if let message = result.choices.first?.message {
-                synthesizer.speak(text: message.content, id: message.id)
+                readAloud(message: message)
             }
             
         } catch {

@@ -8,6 +8,11 @@
 @propertyWrapper
 internal struct Injection<T> {
     private var storage: T?
+    private var mocking: Bool
+    
+    init(mocking: Bool = false) {
+        self.mocking = mocking
+    }
     
     var wrappedValue: T {
         mutating get {
@@ -30,7 +35,10 @@ internal struct Injection<T> {
     
     private var factory: T? {
         if T.self == (any LLMCompletionService).self {
-            return LLMCompletionHTTPService() as? T
+            let service: LLMCompletionService
+            service = mocking ? LLMCompletionMockService() : LLMCompletionHTTPService()
+            
+            return service as? T
         }
         return nil
     }
