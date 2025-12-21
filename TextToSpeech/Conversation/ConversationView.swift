@@ -55,7 +55,7 @@ struct ConversationView: View {
         }
         .padding(.top, 40)
         .task {
-            await viewModel.requestMicPermissionAccess()
+            _ = await viewModel.requestMicPermissionAccess()
         }
     }
     
