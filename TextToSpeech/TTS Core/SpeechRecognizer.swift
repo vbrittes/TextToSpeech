@@ -223,12 +223,24 @@ public final class SpeechRecognizer: NSObject, ObservableObject {
         input.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             box.request.append(buffer)
             
+            // Compute an approximate input "loudness" from the audio buffer.
+            // 1) Extract the first channel's float data (mono or first channel in stereo/multichannel).
+            // 2) Use Accelerate's vDSP to compute RMS (root-mean-square) amplitude over the current buffer frames.
+            // 3) Convert RMS to decibels relative to full scale (dBFS) via 20 * log10(rms).
+            //    Note: This is a rough indicator of input level, not a calibrated SPL in dB.
+            // 4) Clamp to a floor value when rms == 0 to avoid -inf and provide a stable floor.
             if let ch = buffer.floatChannelData?.pointee {
+                // Number of frames (samples per channel) in this buffer slice
                 let n = Int(buffer.frameLength)
+
+                // RMS amplitude of the channel samples in the current buffer window
                 var rms: Float = 0
                 vDSP_rmsqv(ch, 1, &rms, vDSP_Length(n))
+
+                // Convert amplitude to decibels (dBFS). If rms is zero, use a low floor to avoid -infinity.
                 let db = rms > 0 ? 20 * log10f(rms) : -160
-                
+
+                // Publish the current noise level for UI/visualization (e.g., level meter)
                 self?.noiseLevel = db
             }
         }

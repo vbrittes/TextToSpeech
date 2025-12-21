@@ -9,6 +9,18 @@ import Foundation
 
 class LLMCompletionMockService: LLMCompletionService {
     
+    /// Submits a mock LLM completion request and returns a canned response.
+    ///
+    /// This mock implementation simulates network latency by suspending for
+    /// approximately 5 seconds before decoding a hard-coded JSON payload into
+    /// `LLMTextOutput` using `JSONDecoder`.
+    ///
+    /// - Parameter completion: The input payload describing the user's prompt or
+    ///   message for the LLM. In this mock, the value isn't used.
+    /// - Returns: A decoded `LLMTextOutput` representing the assistant's reply.
+    /// - Throws: Any decoding errors encountered while parsing the mock JSON.
+    /// - Note: Intended for testing and UI development without hitting a real
+    ///   backend service.
     func submit(completion: LLMTextInput) async throws -> LLMTextOutput {
         try await Task.sleep(nanoseconds: 5_000_000_000)
         
@@ -44,3 +56,4 @@ extension String {
         return try decoder.decode(T.self, from: data)
     }
 }
+

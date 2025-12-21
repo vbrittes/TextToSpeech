@@ -19,10 +19,9 @@ class LLMCompletionHTTPService: LLMCompletionService, HTTPPerformer {
         
         let url = openAIURL.appending(path: "v1/chat/completions")
 
-        let headers: HTTPHeaders = [
+        let headers = defaultHeader { [
             .authorization(bearerToken: apiKey),
-            .contentType("application/json")
-        ]
+        ] }
                         
         let result = await http.request(url, method: .post, parameters: completion, encoder: JSONParameterEncoder.default, headers: headers)
             .cURLDescription { print($0) }

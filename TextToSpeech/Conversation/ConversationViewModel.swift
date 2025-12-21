@@ -67,10 +67,25 @@ final class ConversationViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func requestMicPermissionAccess() async {
-        _ = await recognizer.requestMicrophonePermission()
+    /// Requests microphone access from the user and returns the authorization result.
+    ///
+    /// This method suspends while prompting for permission via `SpeechRecognizer`.
+    ///
+    /// - Returns: `true` if microphone access is authorized; otherwise, `false`.
+    /// - Note: Consider calling this early (e.g., on first launch or before recording) so that
+    ///   the permission prompt does not interrupt the capture flow.
+    ///
+    func requestMicPermissionAccess() async -> Bool {
+        return await recognizer.requestMicrophonePermission()
     }
     
+    /// Begins a new speech recognition session.
+    ///
+    /// Resets the current recognizer state and attempts to start listening for audio input.
+    /// Any error encountered is surfaced to `errorMessage` for UI presentation.
+    ///
+    /// - Note: Runs on the main actor because it updates observable properties bound to the UI.
+    ///
     @MainActor
     func pressedSpeak() async {
         print("Listening...")
@@ -84,6 +99,16 @@ final class ConversationViewModel: ObservableObject {
         }
     }
 
+    /// Finalizes the speech input and submits the user's transcript to the LLM service.
+    ///
+    /// Stops listening, clears the noise level, validates the transcript, appends the user's
+    /// message to the conversation, and triggers a completion request. On success, assistant
+    /// messages are appended and read aloud. On failure, an error is announced and the message
+    /// is queued in `retryList`.
+    ///
+    /// - Important: Updates multiple published properties (`messages`, `loading`, `errorMessage`,
+    ///   `greeting`, `playbackID`) and should remain on the main actor.
+    ///
     @MainActor
     func releaseSpeak() async {
         transcript = "a"
@@ -143,14 +168,27 @@ final class ConversationViewModel: ObservableObject {
 }
 
 extension ConversationViewModel {
+    /// Speaks the provided message content using the speech synthesizer.
+    ///
+    /// - Parameter message: The message whose `content` will be spoken. The message's `id`
+    ///   is also used to tag playback so the UI can reflect the currently speaking item.
+    ///
     func readAloud(message: LLMMMessage) {
         synthesizer.speak(text: message.content, id: message.id)
         playbackID = message.id
     }
     
+    /// Retries a previously failed message by re-submitting it to the LLM service.
+    ///
+    /// Removes the message from the conversation, places its content back into `transcript`,
+    /// and invokes `releaseSpeak()` to follow the normal submission flow.
+    ///
+    /// - Parameter message: The message to retry.
+    ///
     func retry(message: LLMMMessage) async {
         messages.removeAll { $0 == message }
         transcript = message.content
         await releaseSpeak()
     }
 }
+
