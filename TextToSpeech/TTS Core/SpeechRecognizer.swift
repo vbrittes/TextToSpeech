@@ -58,7 +58,7 @@ public final class SpeechRecognizer: NSObject, ObservableObject {
     // MARK: - Observable state
 
     @Published private(set) var noiseLevel: Float = -1000.0
-    @Published private(set) var state: State = .idle
+    @Published fileprivate(set) var state: State = .idle
     @Published private(set) var transcript: String = ""
     @Published private(set) var isAvailable: Bool = true
 
@@ -308,19 +308,115 @@ extension SpeechRecognizer: SFSpeechRecognizerDelegate {
     }
 }
 
+@MainActor
+private extension SpeechRecognizer {
+    func observeAudioSession() async {
+        let audioSession = AVAudioSession.sharedInstance()
+        
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: audioSession,
+            queue: .main
+        ) { [weak self] note in
+            Task { @MainActor in
+                await self?.handleInterruption(note)
+            }
+        }
+        
+        NotificationCenter.default.addob
+        
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: audioSession,
+            queue: .main
+        ) { [weak self] note in
+            Task { @MainActor in
+                await self?.handleRouteChange(note)
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.mediaServicesWereResetNotification,
+            object: audioSession,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                await self?.handleMediaServicesReset()
+            }
+        }
+    }
+    
+    func handleInterruption(_ note: Notification) async {
+        guard
+            let info = note.userInfo,
+            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue)
+        else { return }
+        
+        switch type {
+        case .began:
+            stop()
+            
+        case .ended:
+            let optValue = (info[AVAudioSessionInterruptionOptionKey] as? UInt) ?? 0
+            let options = AVAudioSession.InterruptionOptions(rawValue: optValue)
+            
+            // Resume only if the system says we may resume
+            if options.contains(.shouldResume), state == .listening {
+                do {
+                    try await startListening()
+                } catch {
+                    state = .failed(message: "Speech recognizer interrupted.")
+                    stop()
+                }
+            }
+            
+        @unknown default:
+            break
+        }
+    }
+    
+    private func handleRouteChange(_ note: Notification) async {
+        if state == .listening {
+            do {
+                try await startListening()
+            } catch {
+                state = .failed(message: "Speech recognizer interrupted.")
+                stop()
+            }
+        }
+    }
+    
+    private func handleMediaServicesReset() async {
+        // Media services reset invalidates audio objects; recreate engine and restart if needed
+        let shouldRestart = state == .listening
+        
+        stop()
+        
+        if shouldRestart {
+            do {
+                try await startListening()
+            } catch {
+                state = .failed(message: "Speech recognizer interrupted.")
+                stop()
+            }
+        }
+    }
+}
+
 // MARK: - Resources
 
 private final class Resources {
     private var engine: AVAudioEngine?
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
-
+    
     func set(engine: AVAudioEngine, request: SFSpeechAudioBufferRecognitionRequest, task: SFSpeechRecognitionTask) {
         self.engine = engine
         self.request = request
         self.task = task
     }
-
+    
     func teardown() {
         if let engine {
             engine.stop()
