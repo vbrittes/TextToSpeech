@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ConversationView: View {
+struct ConversationView: View, HapticFeedback {
     
     let bottomAnchorID = "bottom"
     
@@ -35,21 +35,31 @@ struct ConversationView: View {
                     .fill(Color.blue.opacity(0.5))
                     .frame(width: 150, height: 150)
                     .scaleEffect(viewModel.noiseLevel)
-                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.noiseLevel)
                     .padding(30)
                 Image(systemName: "circle.dotted")
                     .font(.system(size: 150, weight: .bold))
+                    .accessibilityHidden(true)
                     .frame(width: 180, height: 180)
                     .foregroundStyle(Color.blue)
                     .symbolEffect(.rotate, options: .repeat(.continuous), isActive: viewModel.loading)
                     .symbolEffect(.breathe, options: .repeat(.continuous), isActive: viewModel.loading)
                     .scaleEffect(viewModel.loading ? 1.1 : 0.1)
-                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.loading)
                 SpeakLongPressButton(size: 150, title: "Hold & Speak") { value in
                     Task { @MainActor in
-                        await (value ? viewModel.pressedSpeak() : viewModel.releaseSpeak())
+                        if value {
+                            await viewModel.pressedSpeak()
+                            hapticTap(style: .medium)
+                        } else {
+                            await viewModel.releaseSpeak()
+                            hapticTap(type: .success)
+                        }
                     }
                 }
+                .padding(.bottom, 16)
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .accessibilityLabel("Hold to speak")
             }
             .padding(40)
         }
@@ -83,8 +93,8 @@ struct ConversationView: View {
                                     .padding(10)
                                     .background {
                                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(m.role != .user ? Color.gray.opacity(0.5) : Color.cyan.opacity(0.9))
-                                                    .glassEffect(in: .rect(cornerRadius: 12))
+                                            .fill(m.role != .user ? Color.gray.opacity(0.5)  : Color.cyan.opacity(0.9))
+                                            .glassEffect(in: .rect(cornerRadius: 12))
                                     }
                                     .font(.body)
                                 
@@ -136,10 +146,18 @@ struct ConversationView: View {
                             }
                         }
                     }
-                    .onChange(of: viewModel.messages) { a, b in
+                    .onChange(of: viewModel.messages) {
                         Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
                             withAnimation {
                                 proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+                            }
+                        }
+                    }
+                    .onChange(of: viewModel.errorMessage) { oldValue, newValue in
+                        Task { @MainActor in
+                            if newValue != oldValue && viewModel.errorMessage == nil {
+                                hapticTap(type: .error)
                             }
                         }
                     }

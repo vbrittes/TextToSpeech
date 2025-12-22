@@ -323,8 +323,6 @@ private extension SpeechRecognizer {
             }
         }
         
-        NotificationCenter.default.addob
-        
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: audioSession,
