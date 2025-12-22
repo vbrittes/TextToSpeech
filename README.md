@@ -1,4 +1,4 @@
-# CSTV
+# TextToSpeech
 This is a Challenge Project to assess the developer technical skills. 
 Used integrations:
 	- Native Audio Transcription to get the message for user interaction based on user Speech.
