@@ -57,11 +57,12 @@ final class ConversationViewModel: ObservableObject {
                 
                 let noise = CGFloat(noise)
                 
-                let minLevel = -60.0
-                let maxLevel = -10.0
+                let minLevel = -70.0
+                let maxLevel = -1.0
                 
                 withAnimation {
-                    self?.noiseLevel = 2 - pow((noise - maxLevel) / (minLevel - maxLevel), 2)
+                    let calculated = (1.6 - pow((noise - maxLevel) / (minLevel - maxLevel), 2))
+                    self?.noiseLevel = calculated
                 }
             }
             .store(in: &cancellables)
@@ -76,7 +77,7 @@ final class ConversationViewModel: ObservableObject {
     ///   the permission prompt does not interrupt the capture flow.
     ///
     func requestMicPermissionAccess() async -> Bool {
-        return await recognizer.requestMicrophonePermission()
+        return await recognizer.requestPermissions()
     }
     
     /// Begins a new speech recognition session.
@@ -111,7 +112,9 @@ final class ConversationViewModel: ObservableObject {
     ///
     @MainActor
     func releaseSpeak() async {
-        transcript = "a"
+        if transcript.isEmpty {
+            transcript = "a"
+        }
         
         recognizer.stop()
         noiseLevel = 0
@@ -122,7 +125,7 @@ final class ConversationViewModel: ObservableObject {
         }
         
         let message = LLMMMessage(role: .user, content: transcript)
-        let input = LLMTextInput(model: .grok4, messages: [message])
+        let input = LLMTextInput(model: .gpt4oMini, messages: [message])
         
         withAnimation {
             greeting = nil

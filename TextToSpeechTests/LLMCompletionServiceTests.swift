@@ -16,7 +16,7 @@ struct LLMCompletionServiceTests : ~Copyable {
     
     @Test func deserialize() async throws {
         let message = LLMMMessage(role: .user, content: "Hello")
-        let input = LLMTextInput(model: .grok4, messages: [message])
+        let input = LLMTextInput(model: .gpt40, messages: [message])
         
         let result = try await sut.submit(completion: input)
         #expect(result.choices.count == 1)
@@ -34,18 +34,18 @@ struct LLMCompletionServiceTests : ~Copyable {
         //teaddown
     }
     
-//    @Test func httpService() async throws {
-//        let sut = LLMCompletionHTTPService()
-//        
-//        let message = LLMMMessage(role: .user, content: "Hello")
-//        let input = LLMTextInput(model: .gpt40, messages: [message])
-//        
-//        let result = try await sut.submit(completion: input)
-//        #expect(result.choices.count == 1)
-//        #expect(result.choices.first?.message.content == "Hello! How can I help you today?")
-//        #expect(result.choices.first?.message.role == .assistant)
-//        #expect(result.choices.first?.message.id.uuidString.isEmpty == false)
-//    }
+    @Test func httpService() async throws {
+        let sut = LLMCompletionHTTPService()
+        
+        let message = LLMMMessage(role: .user, content: "Hello")
+        let input = LLMTextInput(model: .gpt4oMini, messages: [message])
+        
+        let result = try await sut.submit(completion: input)
+        #expect(result.choices.count == 1)
+        #expect(result.choices.first?.message.content == "Hello! How can I help you today?")
+        #expect(result.choices.first?.message.role == .assistant)
+        #expect(result.choices.first?.message.id.uuidString.isEmpty == false)
+    }
 
 }
 

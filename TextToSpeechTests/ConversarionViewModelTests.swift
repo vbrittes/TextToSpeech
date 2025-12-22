@@ -50,8 +50,10 @@ struct ConversarionViewModelTests {
 extension ConversationViewModel {
     @MainActor
     func send(message: String) async {
-        transcript = message
-        await releaseSpeak()
+        var mock: LLMMMessage = await .mock()
+        mock.content = message
+        
+        await retry(message: mock)
     }
 }
 
@@ -79,4 +81,16 @@ class LLMCompletionConditionedService: LLMCompletionService {
         throw LLMError.defaultError
     }
     
+}
+
+extension LLMMMessage {
+    @MainActor
+    static func mock() async -> LLMMMessage {
+        let mockService = LLMCompletionMockService()
+        
+        let input = LLMTextInput(model: .gpt4oMini, messages: [])
+        let result = try! await mockService.submit(completion: input)
+        
+        return result.choices.first!.message
+    }
 }

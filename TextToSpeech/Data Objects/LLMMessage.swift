@@ -32,7 +32,7 @@ class LLMMMessage: ObservableObject, Identifiable, nonisolated Codable {
     }
     
     /// Stable unique identifier used for diffing and identity.
-    var id: UUID
+    var id: UUID = UUID()
     
     /// The speaker role associated with this message (e.g., `.user`, `.assistant`).
     var role: Role

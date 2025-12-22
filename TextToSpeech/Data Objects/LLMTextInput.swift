@@ -12,9 +12,8 @@ struct LLMTextInput: nonisolated Codable {
     
     /// Supported remote model identifiers for text generation.
     enum Model: String, Codable {
-        case chatGPT4oMini = "gpt-4o-mini"
-        case gpt40 = "openai/gpt-4o"
-        case grok4 = "grok-4-latest"
+        case gpt4oMini = "gpt-4o-mini"
+        case gpt40 = "gpt-4o"
     }
     
     /// The target LLM model to use for generation.

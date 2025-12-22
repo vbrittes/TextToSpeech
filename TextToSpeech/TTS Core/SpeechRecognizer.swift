@@ -239,7 +239,7 @@ public final class SpeechRecognizer: NSObject, ObservableObject {
 
                 // Convert amplitude to decibels (dBFS). If rms is zero, use a low floor to avoid -infinity.
                 let db = rms > 0 ? 20 * log10f(rms) : -160
-
+                
                 // Publish the current noise level for UI/visualization (e.g., level meter)
                 self?.noiseLevel = db
             }

@@ -50,15 +50,15 @@ struct ConversationView: View, HapticFeedback {
                 SpeakLongPressButton(size: 150, title: "Hold & Speak") { value in
                     Task { @MainActor in
                         if value {
-                            await viewModel.pressedSpeak()
                             hapticTap(style: .medium)
+                            await viewModel.pressedSpeak()
                         } else {
-                            await viewModel.releaseSpeak()
                             hapticTap(type: .success)
+                            await viewModel.releaseSpeak()
                         }
                     }
                 }
-                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .disabled(viewModel.loading)
                 .accessibilityLabel("Hold to speak")
             }
             .padding(40)

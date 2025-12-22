@@ -26,47 +26,34 @@ struct SpeakLongPressButton: View {
     @State private var isDown = false
     
     var body: some View {
-        Button {
-            // no action for tap
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(isDown ? .cyan : .blue)
-                    .frame(width: size, height: size)
-                    .scaleEffect(isDown ? 1.05 : 1.0)
-                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: isDown)
-
-                Text(title)
-                    .foregroundStyle(.white)
-                    .font(.headline.bold())
-            }
-            .contentShape(Circle())
-            .accessibilityAddTraits(.isButton)
+        ZStack {
+            Circle()
+                .fill(isDown ? .red : .blue)
+                .frame(width: size, height: size)
+                .scaleEffect(isDown ? 1.05 : 1.0)
+                .animation(.spring, value: isDown)
+            
+            Text(title)
+                .foregroundStyle(.white)
+                .font(.headline.bold())
         }
-        .buttonStyle(PressableButtonStyle { isDown in
-            self.isDown = isDown
-            onHoldChange(isDown)
-        })
-        
-    }
-}
-
-/// A lightweight button style that forwards press state changes.
-///
-/// Wraps a button's label and emits changes to `configuration.isPressed` via the
-/// `onPressChanged` callback, enabling external state updates or side effects when the
-/// button is pressed or released.
-///
-/// - Parameter onPressChanged: A closure invoked with the current pressed state (`true`
-///   when pressed, `false` when released). Defaults to a no-op closure.
-struct PressableButtonStyle: ButtonStyle {
-    var onPressChanged: (Bool) -> Void = { _ in }
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .onChange(of: configuration.isPressed) { _, pressed in
-                onPressChanged(pressed)
-            }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !self.isDown {
+                        print("touch: down")
+                        self.isDown = true
+                        onHoldChange(self.isDown)
+                    }
+                }
+                .onEnded { _ in
+                    if self.isDown {
+                        print("touch: up")
+                        self.isDown = false
+                        onHoldChange(self.isDown)
+                    }
+                }
+        )
     }
 }
 
