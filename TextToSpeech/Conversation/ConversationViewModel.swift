@@ -14,7 +14,7 @@ final class ConversationViewModel: ObservableObject {
     private var synthesizer = SpeechSynthesizer()
     private let recognizer = SpeechRecognizer()
     
-    @Injection(mocking: false) private var service: LLMCompletionService
+    @Injection(mocking: true) private var service: LLMCompletionService
     
     private var cancellables: Set<AnyCancellable> = []
     
@@ -158,7 +158,7 @@ final class ConversationViewModel: ObservableObject {
                 loading = false
             }
             
-            synthesizer.speak(text: error.localizedDescription, id: UUID())
+            synthesizer.speak(text: error.localizedDescription)
             
             @Injection(mocking: true) var service: LLMCompletionService
             self.service = service
@@ -174,7 +174,7 @@ extension ConversationViewModel {
     ///   is also used to tag playback so the UI can reflect the currently speaking item.
     ///
     func readAloud(message: LLMMMessage) {
-        synthesizer.speak(text: message.content, id: message.id)
+        synthesizer.speak(text: message.content)
         playbackID = message.id
     }
     

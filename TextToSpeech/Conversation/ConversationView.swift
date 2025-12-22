@@ -36,7 +36,8 @@ struct ConversationView: View, HapticFeedback {
                     .frame(width: 150, height: 150)
                     .scaleEffect(viewModel.noiseLevel)
                     .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.noiseLevel)
-                    .padding(30)
+                    .opacity(viewModel.noiseLevel > 1 ? 1 : 0)
+                    .padding(16)
                 Image(systemName: "circle.dotted")
                     .font(.system(size: 150, weight: .bold))
                     .accessibilityHidden(true)
@@ -57,7 +58,6 @@ struct ConversationView: View, HapticFeedback {
                         }
                     }
                 }
-                .padding(.bottom, 16)
                 .ignoresSafeArea(.keyboard, edges: .bottom)
                 .accessibilityLabel("Hold to speak")
             }

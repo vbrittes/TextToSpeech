@@ -32,10 +32,10 @@ class LLMMMessage: ObservableObject, Identifiable, nonisolated Codable {
     }
     
     /// Stable unique identifier used for diffing and identity.
-    var id = UUID()
+    var id: UUID
     
     /// The speaker role associated with this message (e.g., `.user`, `.assistant`).
-    var role:  Role
+    var role: Role
     
     /// The raw text content of the message.
     var content: String
@@ -45,9 +45,11 @@ class LLMMMessage: ObservableObject, Identifiable, nonisolated Codable {
     ///   - role: The author role for this message.
     ///   - content: The text content of the message.
     public init(role: Role,
-                content: String) {
+                content: String,
+                id: UUID = .init()) {
         self.role = role
         self.content = content
+        self.id = id
     }
 }
 

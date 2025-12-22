@@ -34,13 +34,12 @@ struct SpeakLongPressButton: View {
                     .fill(isDown ? .cyan : .blue)
                     .frame(width: size, height: size)
                     .scaleEffect(isDown ? 1.05 : 1.0)
-                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: 0.5)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: isDown)
 
                 Text(title)
                     .foregroundStyle(.white)
                     .font(.headline.bold())
             }
-            .padding(6)
             .contentShape(Circle())
             .accessibilityAddTraits(.isButton)
         }

@@ -29,6 +29,7 @@ class LLMCompletionMockService: LLMCompletionService {
           "choices": [
             {
               "message": {
+                "id": "\(UUID().uuidString)",
                 "role": "assistant",
                 "content": "Hello! How can I help you today?"
               }

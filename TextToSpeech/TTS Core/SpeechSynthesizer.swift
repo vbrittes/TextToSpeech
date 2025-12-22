@@ -38,7 +38,7 @@ class SpeechSynthesizer: NSObject, ObservableObject, @unchecked Sendable {
     /// If already speaking, this stops the current utterance before starting the new one.
     /// Attempts to detect the language of the text and select a matching voice.
     /// Configures the audio session to `.playback` and ducks other audio during speech.
-    func speak(text: String, id: UUID) {
+    func speak(text: String) {
         if isSpeaking {
             stopSpeaking()
         }
