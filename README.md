@@ -8,7 +8,6 @@ Used integrations:
 ## Libraries used
 ### Alamofire
 Used to perform HTTP requests.
-### SwiftUI
 
 ## Design pattern
 ### Architecture
