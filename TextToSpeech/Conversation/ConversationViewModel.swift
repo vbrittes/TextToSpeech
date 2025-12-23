@@ -14,7 +14,7 @@ final class ConversationViewModel: ObservableObject {
     private var synthesizer = SpeechSynthesizer()
     private let recognizer = SpeechRecognizer()
     
-    @Injection(mocking: true) private var service: LLMCompletionService
+    @Injection private var service: LLMCompletionService
     
     private var cancellables: Set<AnyCancellable> = []
     
@@ -117,10 +117,6 @@ final class ConversationViewModel: ObservableObject {
     ///
     @MainActor
     func releaseSpeak() async {
-        if transcript.isEmpty {
-            transcript = "a"
-        }
-        
         recognizer.stop()
         noiseLevel = 0
         print("Final transcript: \(transcript)")
@@ -130,17 +126,16 @@ final class ConversationViewModel: ObservableObject {
         }
         
         let message = LLMMMessage(role: .user, content: transcript)
-        let input = LLMTextInput(model: .gpt4oMini, messages: [message])
+        messages.append(message)
         
-        withAnimation {
-            greeting = nil
-            messages.append(message)
-            
-            transcript = ""
-            
-            errorMessage = nil
-            state = .loading
-        }
+        let input = LLMTextInput(model: .gpt4oMini, messages: messages)
+        
+        greeting = nil
+        
+        transcript = ""
+        
+        errorMessage = nil
+        state = .loading
         
         do {
             let result = try await service.submit(completion: input)
@@ -152,11 +147,10 @@ final class ConversationViewModel: ObservableObject {
                 state = .idle
             }
             
-            if let message = result.choices.first?.message {
+            if let message = messages.last {
                 readAloud(message: message)
             }
             
-            @Injection(mocking: false) var service: LLMCompletionService
             self.service = service
             
         } catch {
@@ -168,7 +162,6 @@ final class ConversationViewModel: ObservableObject {
             
             synthesizer.speak(text: error.localizedDescription)
             
-            @Injection(mocking: true) var service: LLMCompletionService
             self.service = service
         }
     }

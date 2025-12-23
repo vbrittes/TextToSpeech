@@ -55,9 +55,8 @@ struct ConversationView: View, HapticFeedback {
                     .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.state)
                     .accessibilityLabel("Hold to speak")
             }
-            .padding(40)
+            .padding(.bottom, 40)
         }
-        .padding(.top, 40)
         .onChange(of: scenePhase) { _, phase in
             Task { @MainActor in
                 viewModel.state = .idle

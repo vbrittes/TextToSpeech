@@ -34,6 +34,7 @@ struct LLMCompletionServiceTests : ~Copyable {
         //teaddown
     }
     
+    ///this test is for integration purposes
     @Test func httpService() async throws {
         let sut = LLMCompletionHTTPService()
         
@@ -42,21 +43,9 @@ struct LLMCompletionServiceTests : ~Copyable {
         
         let result = try await sut.submit(completion: input)
         #expect(result.choices.count == 1)
-        #expect(result.choices.first?.message.content == "Hello! How can I help you today?")
+        #expect(result.choices.first?.message.content.isEmpty == false)
         #expect(result.choices.first?.message.role == .assistant)
         #expect(result.choices.first?.message.id.uuidString.isEmpty == false)
     }
 
 }
-
-/*
- curl -sS -i https://api.x.ai/v1/chat/completions \
-   -H "Content-Type: application/json" \
-   -H "Authorization: Bearer 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" \
-   -d '{
-     "model":"grok-4-0709",
-     "messages":[
-       {"role":"user","content":[{"type":"text","text":"Hello"}]}
-     ]
-   }'
- */

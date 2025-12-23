@@ -25,6 +25,11 @@ import Foundation
 /// - `content`: The textual content of the message.
 class LLMMMessage: ObservableObject, Identifiable, nonisolated Codable {
     
+    private enum CodingKeys: String, CodingKey {
+        case role
+        case content
+    }
+    
     /// The role of the message author within the conversation.
     enum Role: String, Codable, Sendable {
         case assistant
@@ -51,6 +56,7 @@ class LLMMMessage: ObservableObject, Identifiable, nonisolated Codable {
         self.content = content
         self.id = id
     }
+    
 }
 
 extension LLMMMessage: Equatable {
