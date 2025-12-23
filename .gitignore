@@ -1,112 +1,108 @@
-############################################
-# macOS
-############################################
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon?
-._*
-.Spotlight-V100
-.Trashes
-.fseventsd
+# Created by https://www.toptal.com/developers/gitignore/api/xcode,swift,swiftpackagemanager
+# Edit at https://www.toptal.com/developers/gitignore?templates=xcode,swift,swiftpackagemanager
 
-############################################
+### Swift ###
 # Xcode
-############################################
-# Build products
-build/
-DerivedData/
-*.xcarchive
-*.ipa
-*.dSYM
-*.dSYM.zip
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
-# User-specific files
+## User settings
 xcuserdata/
-*.xcuserstate
+.DS_STORE
+
+## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
 *.xcscmblueprint
 *.xccheckout
 
-# Legacy Xcode user settings
+## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
+build/
+DerivedData/
+*.moved-aside
 *.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
 !default.pbxuser
+*.mode1v3
 !default.mode1v3
+*.mode2v3
 !default.mode2v3
+*.perspectivev3
 !default.perspectivev3
 
-# Logs / temporary
-*.moved-aside
-*.swp
-*.log
+## Obj-C/Swift specific
+*.hmap
 
-############################################
-# Swift Package Manager (SPM)
-############################################
-.build/
-.swiftpm/xcode/package.xcworkspace/
-.swiftpm/configuration/
-.swiftpm/registries/
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
 
-# Xcode may generate this folder for Swift packages
-SourcePackages/
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
 
-# Dependency resolution file
-# ✅ For apps, it's usually best to COMMIT Package.resolved for reproducible builds.
-# If you prefer not to, uncomment the ignore rules below.
+# Swift Package Manager
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
 # Package.resolved
-# */xcshareddata/swiftpm/Package.resolved
+# *.xcodeproj
+# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
+# hence it is not needed unless you have added a package configuration file to your project
+# .swiftpm
 
-############################################
-# Instruments / profiling
-############################################
-*.trace
-*.instrument
-*.xccovreport
-*.xccovarchive
+.build/
 
-############################################
-# Swift / tooling
-############################################
-*.swiftmodule
-*.swiftdoc
-*.swiftinterface
-*.swiftsourceinfo
-
-############################################
-# Editors
-############################################
-.vscode/
-.idea/
-*.iml
-
-############################################
-# Secrets / env (DON'T COMMIT)
-############################################
-.env
-.env.*
-*.pem
-*.p12
-*.cer
-*.mobileprovision
-
-############################################
-# Optional (enable if you use these)
-############################################
 # CocoaPods
+# We recommend against adding the Pods directory to your .gitignore. However
+# you should judge for yourself, the pros and cons are mentioned at:
+# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
 # Pods/
+# Add this line if you want to avoid checking in source code from the Xcode workspace
+# *.xcworkspace
 
 # Carthage
-# Carthage/Build/
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Checkouts
 
-# fastlane artifacts
-# fastlane/report.xml
-# fastlane/Preview.html
-# fastlane/screenshots/
-# fastlane/test_output/
+Carthage/Build/
 
-# Tuist
-# Tuist/.build/
-# Tuist/Dependencies/
+# Accio dependency management
+Dependencies/
+.accio/
+
+# fastlane
+# It is recommended to not store the screenshots in the git repo.
+# Instead, use fastlane to re-generate the screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/#source-control
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+# After new code Injection tools there's a generated folder /iOSInjectionProject
+# https://github.com/johnno1962/injectionforxcode
+
+iOSInjectionProject/
+
+### SwiftPackageManager ###
+Packages
+xcuserdata
+
+
+### Xcode ###
+
+## Xcode 8 and earlier
+
+### Xcode Patch ###
+# *.xcodeproj/*
+# !*.xcodeproj/project.pbxproj
+# !*.xcodeproj/xcshareddata/
+# !*.xcodeproj/xcshareddata/xcschemes/*.xcscheme
+# !*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# End of https://www.toptal.com/developers/gitignore/api/xcode,swift,swiftpackagemanager
