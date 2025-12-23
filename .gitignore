@@ -106,5 +106,5 @@ xcuserdata
 **/xcshareddata/WorkspaceSettings.xcsettings
 **/xcuserdata/*
 *.xcodeproj/project.xcworkspace/xcuserdata/*
-
+*.xcodeproj/xcshareddata/xcschemes/*
 # End of https://www.toptal.com/developers/gitignore/api/xcode,swift,swiftpackagemanager

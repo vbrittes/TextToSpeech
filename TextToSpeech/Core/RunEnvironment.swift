@@ -1,5 +1,5 @@
 //
-//  Environment.swift
+//  RunEnvironment.swift
 //  TextToSpeech
 //
 //  Created by Victor Brittes on 23/12/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Environment: String {
+enum RunEnvironment: String {
     
     case openAIKey = "OPENAI_API_KEY"
     

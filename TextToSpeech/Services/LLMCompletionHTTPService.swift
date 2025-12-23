@@ -10,7 +10,7 @@ import Foundation
 
 class LLMCompletionHTTPService: LLMCompletionService, HTTPPerformer {
     private let openAIURL = URL(string: "https://api.openai.com")!
-    private let apiKey = Environment.openAIKey.value
+    private let apiKey = RunEnvironment.openAIKey.value
         
     func submit(completion: LLMTextInput) async throws -> LLMTextOutput {
         
