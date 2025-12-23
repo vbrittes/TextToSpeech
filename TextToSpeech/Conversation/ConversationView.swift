@@ -10,9 +10,9 @@ import SwiftUI
 struct ConversationView: View, HapticFeedback {
     
     @Environment(\.scenePhase) private var scenePhase
-    
-    let bottomAnchorID = "bottom"
-    
+        
+    @State private var scrollTask: Task<Void, Never>?
+
     @StateObject var viewModel = ConversationViewModel()
     @State var isHolding = false
     
@@ -25,7 +25,6 @@ struct ConversationView: View, HapticFeedback {
                 .containerRelativeFrame(.vertical) { length, _ in
                     length * 0.15
                 }
-                .padding(20)
                 .transition(.slideDownFadeOnRemove(inXOffset: -10))
                 .standardAnimation(value: viewModel.transcript)
                 .background {
@@ -33,6 +32,8 @@ struct ConversationView: View, HapticFeedback {
                         .fill(Color.gray.opacity(0.1))
                         .glassEffect(in: .rect(cornerRadius: 12))
                 }
+                .padding(.top, 20)
+                .padding(.bottom, 20)
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.5))
@@ -135,6 +136,7 @@ struct ConversationView: View, HapticFeedback {
                                     }
                                 }
                             }
+                            .id(m.id.uuidString)
                         }
                         
                         if let error = viewModel.errorMessage {
@@ -143,25 +145,19 @@ struct ConversationView: View, HapticFeedback {
                                 .font(.body)
                         }
                         
-                        Rectangle()
-                            .foregroundStyle(.clear)
-                            .frame(height: 1)
-                            .id(bottomAnchorID)
-                        
                     }
                     .standardAnimation(value: viewModel.messages)
                     .onAppear {
-                        if !viewModel.messages.isEmpty {
+                        if let lastMessage = viewModel.messages.last {
                             Task { @MainActor in
-                                proxy.scrollTo(bottomAnchorID, anchor: .top)
+                                proxy.scrollTo(lastMessage.id.uuidString, anchor: .top)
                             }
                         }
                     }
                     .onChange(of: viewModel.messages) {
-                        Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
-                            withAnimation {
-                                proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+                        if let lastMessage = viewModel.messages.last {
+                            Task { @MainActor in
+                                proxy.scrollTo(lastMessage.id.uuidString, anchor: .top)
                             }
                         }
                     }
@@ -181,7 +177,23 @@ struct ConversationView: View, HapticFeedback {
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.clear)
     }
-    
+        
+    @MainActor
+    private func scrollTo(anchorID: String, proxy: ScrollViewProxy, animated: Bool = true) {
+        scrollTask?.cancel()
+        scrollTask = Task { @MainActor in
+            // Let SwiftUI finish updating layout (helps when messages/images arrive)
+            await Task.yield()
+            
+            guard !Task.isCancelled else { return }
+            
+            if animated {
+                withAnimation(.snappy) { proxy.scrollTo(anchorID, anchor: .bottom) }
+            } else {
+                proxy.scrollTo(anchorID, anchor: .bottom)
+            }
+        }
+    }
 }
 
 extension View {

@@ -89,9 +89,6 @@ final class ConversationViewModel: ObservableObject {
     ///
     @MainActor
     func pressedSpeak() async {
-        guard state != .listening else {
-            return
-        }
         
         print("Listening...")
         
