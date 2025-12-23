@@ -1,0 +1,112 @@
+############################################
+# macOS
+############################################
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+############################################
+# Xcode
+############################################
+# Build products
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# User-specific files
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Legacy Xcode user settings
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+
+# Logs / temporary
+*.moved-aside
+*.swp
+*.log
+
+############################################
+# Swift Package Manager (SPM)
+############################################
+.build/
+.swiftpm/xcode/package.xcworkspace/
+.swiftpm/configuration/
+.swiftpm/registries/
+
+# Xcode may generate this folder for Swift packages
+SourcePackages/
+
+# Dependency resolution file
+# ✅ For apps, it's usually best to COMMIT Package.resolved for reproducible builds.
+# If you prefer not to, uncomment the ignore rules below.
+# Package.resolved
+# */xcshareddata/swiftpm/Package.resolved
+
+############################################
+# Instruments / profiling
+############################################
+*.trace
+*.instrument
+*.xccovreport
+*.xccovarchive
+
+############################################
+# Swift / tooling
+############################################
+*.swiftmodule
+*.swiftdoc
+*.swiftinterface
+*.swiftsourceinfo
+
+############################################
+# Editors
+############################################
+.vscode/
+.idea/
+*.iml
+
+############################################
+# Secrets / env (DON'T COMMIT)
+############################################
+.env
+.env.*
+*.pem
+*.p12
+*.cer
+*.mobileprovision
+
+############################################
+# Optional (enable if you use these)
+############################################
+# CocoaPods
+# Pods/
+
+# Carthage
+# Carthage/Build/
+
+# fastlane artifacts
+# fastlane/report.xml
+# fastlane/Preview.html
+# fastlane/screenshots/
+# fastlane/test_output/
+
+# Tuist
+# Tuist/.build/
+# Tuist/Dependencies/
