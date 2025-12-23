@@ -21,36 +21,29 @@ import SwiftUI
 struct SpeakLongPressButton: View {
     var size: CGFloat = 84
     var title: String = ""
-    var onHoldChange: @Sendable (Bool) -> Void
 
-    @State private var isDown = false
-    
+    @Binding var isDown: Bool
+
     var body: some View {
         ZStack {
             Circle()
                 .fill(isDown ? .red : .blue)
                 .frame(width: size, height: size)
                 .scaleEffect(isDown ? 1.05 : 1.0)
-                .animation(.spring, value: isDown)
-            
             Text(title)
                 .foregroundStyle(.white)
                 .font(.headline.bold())
         }
-        .simultaneousGesture(
+        .gesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !self.isDown {
-                        print("touch: down")
-                        self.isDown = true
-                        onHoldChange(self.isDown)
+                .onChanged { drag in
+                    if drag.translation == .zero && !isDown{
+                        isDown = true
                     }
                 }
                 .onEnded { _ in
-                    if self.isDown {
-                        print("touch: up")
-                        self.isDown = false
-                        onHoldChange(self.isDown)
+                    if isDown {
+                        isDown = false
                     }
                 }
         )

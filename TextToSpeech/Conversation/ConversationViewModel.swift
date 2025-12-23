@@ -23,7 +23,7 @@ final class ConversationViewModel: ObservableObject {
     @Published private(set) var greeting: String? = "How can I help you today?"
     @Published private(set) var noiseLevel: CGFloat = 0.0
     @Published private(set) var playbackID: UUID?
-    @Published private(set) var loading = false
+    @Published var state: ConversationState = .idle
     @Published private(set) var retryList: [LLMMMessage] = []
         
     init(service: LLMCompletionService? = nil) {
@@ -89,8 +89,13 @@ final class ConversationViewModel: ObservableObject {
     ///
     @MainActor
     func pressedSpeak() async {
+        guard state != .listening else {
+            return
+        }
+        
         print("Listening...")
         
+        state = .listening
         recognizer.reset()
                 
         do {
@@ -134,7 +139,7 @@ final class ConversationViewModel: ObservableObject {
             transcript = ""
             
             errorMessage = nil
-            loading = true
+            state = .loading
         }
         
         do {
@@ -144,7 +149,7 @@ final class ConversationViewModel: ObservableObject {
             
             withAnimation {
                 result.choices.forEach { messages.append($0.message) }
-                loading = false
+                state = .idle
             }
             
             if let message = result.choices.first?.message {
@@ -158,7 +163,7 @@ final class ConversationViewModel: ObservableObject {
             withAnimation {
                 errorMessage = error.localizedDescription
                 retryList.append(message)
-                loading = false
+                state = .idle
             }
             
             synthesizer.speak(text: error.localizedDescription)
@@ -171,6 +176,11 @@ final class ConversationViewModel: ObservableObject {
 }
 
 extension ConversationViewModel {
+    
+    var loading: Bool {
+        state == .loading
+    }
+    
     /// Speaks the provided message content using the speech synthesizer.
     ///
     /// - Parameter message: The message whose `content` will be spoken. The message's `id`
@@ -195,3 +205,6 @@ extension ConversationViewModel {
     }
 }
 
+enum ConversationState {
+    case listening, loading, idle
+}

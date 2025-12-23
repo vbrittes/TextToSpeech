@@ -374,6 +374,7 @@ private extension SpeechRecognizer {
         }
     }
     
+    //This happens on bluetooth/headset switching
     private func handleRouteChange(_ note: Notification) async {
         if state == .listening {
             do {

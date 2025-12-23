@@ -9,9 +9,12 @@ import SwiftUI
 
 struct ConversationView: View, HapticFeedback {
     
+    @Environment(\.scenePhase) private var scenePhase
+    
     let bottomAnchorID = "bottom"
     
     @StateObject var viewModel = ConversationViewModel()
+    @State var isHolding = false
     
     var body: some View {
         VStack {
@@ -46,24 +49,33 @@ struct ConversationView: View, HapticFeedback {
                     .symbolEffect(.rotate, options: .repeat(.continuous), isActive: viewModel.loading)
                     .symbolEffect(.breathe, options: .repeat(.continuous), isActive: viewModel.loading)
                     .scaleEffect(viewModel.loading ? 1.1 : 0.1)
-                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.loading)
-                SpeakLongPressButton(size: 150, title: "Hold & Speak") { value in
-                    Task { @MainActor in
-                        if value {
-                            hapticTap(style: .medium)
-                            await viewModel.pressedSpeak()
-                        } else {
-                            hapticTap(type: .success)
-                            await viewModel.releaseSpeak()
-                        }
-                    }
-                }
-                .disabled(viewModel.loading)
-                .accessibilityLabel("Hold to speak")
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.state)
+                SpeakLongPressButton(size: 150, title: "Hold & Speak", isDown: $isHolding)
+                    .disabled(viewModel.loading)
+                    .animation(.bouncy(duration: 0.5, extraBounce: 0.5), value: viewModel.state)
+                    .accessibilityLabel("Hold to speak")
             }
             .padding(40)
         }
         .padding(.top, 40)
+        .onChange(of: scenePhase) { _, phase in
+            Task { @MainActor in
+                viewModel.state = .idle
+                isHolding = false
+            }
+        }
+        .onChange(of: isHolding) { _, newValue in
+            Task { @MainActor in
+                if newValue {
+                    hapticTap(style: .medium)
+                    await viewModel.pressedSpeak()
+                } else {
+                    hapticTap(type: .success)
+                    await viewModel.releaseSpeak()
+            
+                }
+            }
+        }
         .task {
             _ = await viewModel.requestMicPermissionAccess()
         }
