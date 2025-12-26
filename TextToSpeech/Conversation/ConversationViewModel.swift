@@ -66,6 +66,14 @@ final class ConversationViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        
+        recognizer.audioInterruption = { [weak self] playing in
+            guard let self else { return }
+            
+            if !playing && self.synthesizer.isSpeaking {
+                self.stopReadingAloud()
+            }
+        }
     }
     
     /// Requests microphone access from the user and returns the authorization result.

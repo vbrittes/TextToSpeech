@@ -61,6 +61,7 @@ struct ConversationView: View, HapticFeedback {
         .onChange(of: scenePhase) { _, phase in
             Task { @MainActor in
                 viewModel.state = .idle
+                viewModel.stopReadingAloud()
                 isHolding = false
             }
         }

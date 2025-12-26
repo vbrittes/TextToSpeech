@@ -70,6 +70,9 @@ public final class SpeechRecognizer: NSObject, ObservableObject {
 
     // MARK: - Internals
 
+    ///Use this to handle any non speech recognizer related action for interruptions
+    var audioInterruption: ((_ playing: Bool) -> Void)?
+    
     private var recognizer: SFSpeechRecognizer?
     private let resources = Resources()
 
@@ -358,6 +361,7 @@ private extension SpeechRecognizer {
         switch type {
         case .began:
             stop()
+            self.audioInterruption?(false)
             
         case .ended:
             let optValue = (info[AVAudioSessionInterruptionOptionKey] as? UInt) ?? 0
@@ -367,6 +371,7 @@ private extension SpeechRecognizer {
             if options.contains(.shouldResume), state == .listening {
                 do {
                     try await startListening()
+                    self.audioInterruption?(true)
                 } catch {
                     stop()
                     state = .failed(message: "Speech recognizer interrupted.")
