@@ -21,7 +21,7 @@ internal struct Injection<T> {
             }
             
             guard let f = factory else {
-                fatalError("injection not implemente")
+                fatalError("injection not implemented")
             }
             
             storage = f

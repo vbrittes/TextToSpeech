@@ -29,6 +29,10 @@ class LLMCompletionHTTPService: LLMCompletionService, HTTPPerformer {
         do {
             return try result.get()
         } catch {
+            if case .failure(let afError) = result, let e = afError.friendlyError {
+                throw e
+            }
+            
             throw error
         }
         

@@ -93,6 +93,10 @@ public final class SpeechRecognizer: NSObject, ObservableObject {
         r?.delegate = self
         recognizer = r
         isAvailable = r?.isAvailable ?? true
+        
+        Task { [weak self] in
+            await self?.observeAudioSession()
+        }
     }
 
     // MARK: - Permissions
@@ -364,8 +368,8 @@ private extension SpeechRecognizer {
                 do {
                     try await startListening()
                 } catch {
-                    state = .failed(message: "Speech recognizer interrupted.")
                     stop()
+                    state = .failed(message: "Speech recognizer interrupted.")
                 }
             }
             
@@ -376,13 +380,14 @@ private extension SpeechRecognizer {
     
     //This happens on bluetooth/headset switching
     private func handleRouteChange(_ note: Notification) async {
-        if state == .listening {
-            do {
-                try await startListening()
-            } catch {
-                state = .failed(message: "Speech recognizer interrupted.")
-                stop()
-            }
+        guard
+            let info = note.userInfo,
+            let reasonRaw = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+            let reason = AVAudioSession.RouteChangeReason(rawValue: reasonRaw)
+        else { return }
+
+        if reason == .oldDeviceUnavailable {
+            stop()
         }
     }
     

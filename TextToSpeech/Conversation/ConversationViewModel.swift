@@ -92,6 +92,10 @@ final class ConversationViewModel: ObservableObject {
         
         print("Listening...")
         
+        if synthesizer.isSpeaking {
+            stopReadingAloud()
+        }
+        
         state = .listening
         recognizer.reset()
                 
@@ -114,6 +118,12 @@ final class ConversationViewModel: ObservableObject {
     ///
     @MainActor
     func releaseSpeak() async {
+        
+        ///enable testing on simulator
+        #if DEBUG
+        let transcript = self.transcript.isEmpty ? "a" : self.transcript
+        #endif
+        
         recognizer.stop()
         noiseLevel = 0
         print("Final transcript: \(transcript)")
@@ -125,19 +135,17 @@ final class ConversationViewModel: ObservableObject {
         let message = LLMMMessage(role: .user, content: transcript)
         messages.append(message)
         
+        recognizer.reset()
+        
         let input = LLMTextInput(model: .gpt4oMini, messages: messages)
         
         greeting = nil
-        
-        transcript = ""
         
         errorMessage = nil
         state = .loading
         
         do {
             let result = try await service.submit(completion: input)
-            
-            recognizer.reset()
             
             withAnimation {
                 result.choices.forEach { messages.append($0.message) }
@@ -149,6 +157,10 @@ final class ConversationViewModel: ObservableObject {
             }
             
             self.service = service
+            
+            Task { @MainActor [weak self] in
+                self?.transcript = ""
+            }
             
         } catch {
             withAnimation {
@@ -178,7 +190,19 @@ extension ConversationViewModel {
     ///
     func readAloud(message: LLMMMessage) {
         synthesizer.speak(text: message.content)
-        playbackID = message.id
+        Task { @MainActor in
+            playbackID = message.id
+        }
+    }
+    
+    /// Stops any ongoing speech synthesis and clears the current playback identifier.
+    ///
+    /// Call this to immediately halt the voice output started by `readAloud(message:)`.
+    /// This method also resets `playbackID` to `nil` so the UI can reflect that
+    /// no message is currently being spoken.
+    func stopReadingAloud() {
+        synthesizer.stopSpeaking()
+        playbackID = nil
     }
     
     /// Retries a previously failed message by re-submitting it to the LLM service.
@@ -198,3 +222,4 @@ extension ConversationViewModel {
 enum ConversationState {
     case listening, loading, idle
 }
+

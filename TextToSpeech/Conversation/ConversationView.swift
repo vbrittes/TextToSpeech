@@ -25,6 +25,7 @@ struct ConversationView: View, HapticFeedback {
                 .containerRelativeFrame(.vertical) { length, _ in
                     length * 0.15
                 }
+                .padding(10)
                 .transition(.slideDownFadeOnRemove(inXOffset: -10))
                 .standardAnimation(value: viewModel.transcript)
                 .background {
@@ -32,8 +33,7 @@ struct ConversationView: View, HapticFeedback {
                         .fill(Color.gray.opacity(0.1))
                         .glassEffect(in: .rect(cornerRadius: 12))
                 }
-                .padding(.top, 20)
-                .padding(.bottom, 20)
+                .padding(10)
             ZStack {
                 Circle()
                     .fill(Color.blue.opacity(0.5))
@@ -113,16 +113,21 @@ struct ConversationView: View, HapticFeedback {
                                 if m.role != .user {
                                     let canPlay = viewModel.playbackID != m.id
                                     Button {
-                                        viewModel.readAloud(message: m)
+                                        if canPlay {
+                                            viewModel.readAloud(message: m)
+                                        } else {
+                                            viewModel.stopReadingAloud()
+                                        }
                                     } label: {
-                                        Image(systemName: "play.fill")
+                                        let assetName = canPlay ? "play.fill" : "stop.fill"
+                                        
+                                        Image(systemName: assetName)
                                             .foregroundStyle(.white)
                                             .font(.system(size: 20, weight: .semibold))
                                             .padding(10)
                                             .background(Circle().fill(Color.gray.opacity(0.5)))
                                             .padding(10)
-                                    }.disabled(!canPlay)
-                                        .opacity(canPlay ? 1 : 0.4)
+                                    }
                                     Spacer()
                                 } else if viewModel.retryList.contains(m) {
                                     Button {
@@ -137,6 +142,7 @@ struct ConversationView: View, HapticFeedback {
                                 }
                             }
                             .id(m.id.uuidString)
+                            
                         }
                         
                         if let error = viewModel.errorMessage {
@@ -147,17 +153,10 @@ struct ConversationView: View, HapticFeedback {
                         
                     }
                     .standardAnimation(value: viewModel.messages)
-                    .onAppear {
-                        if let lastMessage = viewModel.messages.last {
-                            Task { @MainActor in
-                                proxy.scrollTo(lastMessage.id.uuidString, anchor: .top)
-                            }
-                        }
-                    }
                     .onChange(of: viewModel.messages) {
                         if let lastMessage = viewModel.messages.last {
                             Task { @MainActor in
-                                proxy.scrollTo(lastMessage.id.uuidString, anchor: .top)
+                                scrollTo(anchorID: lastMessage.id, proxy: proxy, animated: true)
                             }
                         }
                     }
@@ -176,10 +175,25 @@ struct ConversationView: View, HapticFeedback {
         .padding(.horizontal, 20)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(.clear)
+        .ignoresSafeArea(.container, edges: .bottom)
     }
-        
+    
+    /// Scrolls the messages list to the item with the given identifier.
+    ///
+    /// Cancels any in-flight scroll task before starting a new one, yields once to allow
+    /// SwiftUI to complete layout updates, and then scrolls to the target anchor. When
+    /// `animated` is `true`, the scroll uses a `.snappy` animation; otherwise it jumps
+    /// directly without animation.
+    ///
+    /// - Parameters:
+    ///   - anchorID: The `UUID` of the message to scroll to. The view uses `uuidString` as the scroll anchor ID.
+    ///   - proxy: The `ScrollViewProxy` used to perform the programmatic scroll.
+    ///   - animated: Whether to animate the scroll. Defaults to `true`.
+    ///
+    /// - Note: This method is `@MainActor` isolated because it updates UI state and interacts
+    ///   with `ScrollViewProxy`.
     @MainActor
-    private func scrollTo(anchorID: String, proxy: ScrollViewProxy, animated: Bool = true) {
+    private func scrollTo(anchorID: UUID, proxy: ScrollViewProxy, animated: Bool = true) {
         scrollTask?.cancel()
         scrollTask = Task { @MainActor in
             // Let SwiftUI finish updating layout (helps when messages/images arrive)
@@ -188,9 +202,9 @@ struct ConversationView: View, HapticFeedback {
             guard !Task.isCancelled else { return }
             
             if animated {
-                withAnimation(.snappy) { proxy.scrollTo(anchorID, anchor: .bottom) }
+                withAnimation(.snappy) { proxy.scrollTo(anchorID.uuidString, anchor: .top) }
             } else {
-                proxy.scrollTo(anchorID, anchor: .bottom)
+                proxy.scrollTo(anchorID.uuidString, anchor: .top)
             }
         }
     }
