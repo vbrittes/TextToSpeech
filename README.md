@@ -79,4 +79,5 @@ appropriate. ✅
 
 ## Considerations
 The transcription is implemented using native audio APIs, therefore file storage was not required.
-Future enhancements would cover UI polishment (such as animations smoothing) and gesture conflicting scenarios stressing to add an extra layer on UI consistence assurance.
+
+Future enhancements would cover UI polishment (such as animations smoothing) and gesture conflicting scenarios exploring in order to add an extra layer on UI consistence assurance.
