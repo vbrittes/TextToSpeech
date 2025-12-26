@@ -69,13 +69,13 @@ appropriate. ✅
 - User experience state machine: A simple ConversationState enum (listening, loading, idle) drives UI rendering and user interaction. The view model transitions through these states during the speech/LLM cycle.
 
 - Resilience and recovery:
-   • View model captures failed messages on retryList to support resubmission.
-   • errorMessage is surfaced to the UI and also spoken aloud via TTS for accessibility/feedback.
-   • Simulator-friendly #if DEBUG branch seeds a default transcript for easier testing.
+	- View model captures failed messages on retryList to support resubmission.
+	- errorMessage is surfaced to the UI and also spoken aloud via TTS for accessibility/feedback.
+	- Simulator-friendly #if DEBUG branch seeds a default transcript for easier testing.
 
 - UI affordances:
-   • noiseLevel animation logic maps dB levels to a normalized visual value, enhancing the listening UI.
-   • playbackID tags the currently spoken message for highlighting.
+	- noiseLevel animation logic maps dB levels to a normalized visual value, enhancing the listening UI.
+	- playbackID tags the currently spoken message for highlighting.
 
 ## Considerations
 The transcription is implemented using native audio APIs, therefore file storage was not required.
