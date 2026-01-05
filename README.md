@@ -28,6 +28,8 @@ OpenAI API key must be provided as a scheme OPENAI_API_KEY running argument.
 
 Before compiling, update SPM's dependencies; If any dependency error occurs, cleaning the cache is recommended.
 
+Disclaimer: Running the app on debug mode may affect transcription quality.
+
 ## Core Features
 - Audio Recording
 	- Capture short audio clips from the microphone with AVAudioSession/AVAudioRecorder (or AVAudioEngine if you prefer). ⚠️
